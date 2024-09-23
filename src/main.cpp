@@ -9,7 +9,7 @@ A tiny and very basic NTP server based on a GPS receiver and running
 on the SeeedStudio XIAO ESP32C3 or XIAO ESP32S3
 
 */
-
+#include <Wire.h>
 #include <Arduino.h>              // framework for platformIO
 #include <HardwareSerial.h>       // for access to the hardware serial interface
 #include <WiFi.h>                 //
@@ -28,7 +28,8 @@ on the SeeedStudio XIAO ESP32C3 or XIAO ESP32S3
 #endif
 
 #if (HAS_OLED > 0)
-#include "SSD1306Wire.h"          // hardware driver for SSD1306 OLED display in .pio/libdeps
+#include <Adafruit_GFX.h>
+#include <Adafruit_SH110X.h>
 #endif
 
 #if (SHOW_NMEA>0) && (!ENABLE_DGB)
@@ -291,7 +292,13 @@ char dateBuffer[12];    // date format: 2023:11:31
 //#define SDA  6   // defined in  ~/.platformio/packages/framework-arduinoespressif32/variants/XIAO_ESP32C3/pins_arduino.h
 //#define SCL  7
 
-SSD1306Wire display(0x3c, SDA, SCL, GEOMETRY_128_32);
+/* Uncomment the initialize the I2C address , uncomment only one, If you get a totally blank screen try the other*/
+#define i2c_Address 0x3c //initialize with the I2C addr 0x3C Typically eBay OLED's
+//#define i2c_Address 0x3d //initialize with the I2C addr 0x3D Typically Adafruit OLED's
+
+#define SCREEN_WIDTH 64 // OLED display width, in pixels
+#define SCREEN_HEIGHT 128 // OLED display height, in pixels
+Adafruit_SH1107 display = Adafruit_SH1107(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
 
 int jitter[3] = {-1, 0, 1};
 int xjit = 0;
@@ -299,14 +306,16 @@ int yjit = 1;
 
 
 void Show(void) {
-  display.clear();
-  display.drawString(64+jitter[xjit], 1+jitter[yjit], timeBuffer);
+  display.clearDisplay();
+  display.setTextSize(2);
+  display.setTextColor(SH110X_WHITE);
+  display.setCursor(35+jitter[xjit], 5+jitter[yjit]);
+  display.print(timeBuffer);
   xjit = xjit % 3;
   yjit = yjit % 3;
-  display.drawString(64+jitter[xjit], 16+jitter[yjit], dateBuffer);
+  display.setCursor(8+jitter[xjit], 32+jitter[yjit]);
+  display.print(dateBuffer);
   display.display();
-  xjit = xjit % 3;
-  yjit = yjit % 3;
 }
 
 #endif // HAS_OLED
@@ -345,14 +354,15 @@ void setup() {
   delay(1000);
 
   #if (HAS_OLED > 0)
+  
   DBG("Initializing OLED display");
+  display.begin(0x3C, true); // Address 0x3C default
+  display.clearDisplay();
+  display.display();
+  display.setRotation(1);
+  DBG("OLED begun");
   strlcpy(timeBuffer, "--:--", sizeof(timeBuffer));
   strlcpy(dateBuffer, "----.--.--.", sizeof(dateBuffer));
-  display.init();
-  display.flipScreenVertically();
-  display.setTextAlignment(TEXT_ALIGN_CENTER);
-  display.setFont(ArialMT_Plain_16);
-  display.displayOn();
   Show();
   #endif
 
@@ -437,9 +447,11 @@ void loop(void) {
     lastWarning = millis();
     DBG("No GPS detected");
     #if (HAS_OLED > 0)
-    display.clear();
-    display.drawString(64, 2, "NO GPS");
-    display.drawString(64, 32, "FOUND");
+    display.clearDisplay();
+    display.setTextSize(1);             // Normal 1:1 pixel scale
+    display.setTextColor(SH110X_WHITE);        // Draw white text
+    display.setCursor(32,2);             // Start at top-left corner
+    display.println(F("No GPS Found"));
     display.display();
     #endif
   }

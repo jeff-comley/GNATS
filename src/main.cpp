@@ -20,6 +20,8 @@ on the SeeedStudio XIAO ESP32C3 or XIAO ESP32S3
 #include "secrets.h"              // use secrets.h.template to create this file
 #include "TinyGPSPlus.h"          // loaded with platformio directive
 
+#define SERIAL_BAUD 115200
+
 #if (HAS_DS3231 > 0)
 #include <Wire.h>                 // Arduino I2C library
 #include <RtcDS3231.h>            // in .pio/libdeps
@@ -289,7 +291,7 @@ char dateBuffer[12];    // date format: 2023:11:31
 //#define SDA  6   // defined in  ~/.platformio/packages/framework-arduinoespressif32/variants/XIAO_ESP32C3/pins_arduino.h
 //#define SCL  7
 
-SSD1306Wire display(0x3c, SDA, SCL, GEOMETRY_128_64);
+SSD1306Wire display(0x3c, SDA, SCL, GEOMETRY_128_32);
 
 int jitter[3] = {-1, 0, 1};
 int xjit = 0;
@@ -298,10 +300,10 @@ int yjit = 1;
 
 void Show(void) {
   display.clear();
-  display.drawString(64+jitter[xjit], 2+jitter[yjit], timeBuffer);
+  display.drawString(64+jitter[xjit], 1+jitter[yjit], timeBuffer);
   xjit = xjit % 3;
   yjit = yjit % 3;
-  display.drawString(64+jitter[xjit], 32+jitter[yjit], dateBuffer);
+  display.drawString(64+jitter[xjit], 16+jitter[yjit], dateBuffer);
   display.display();
   xjit = xjit % 3;
   yjit = yjit % 3;
@@ -349,7 +351,7 @@ void setup() {
   display.init();
   display.flipScreenVertically();
   display.setTextAlignment(TEXT_ALIGN_CENTER);
-  display.setFont(ArialMT_Plain_24);
+  display.setFont(ArialMT_Plain_16);
   display.displayOn();
   Show();
   #endif

@@ -22,6 +22,11 @@ on the SeeedStudio XIAO ESP32C3 or XIAO ESP32S3
 
 #define SERIAL_BAUD 115200
 
+#if (TWENTY_FOUR > 0)
+int twenty_four = 1
+#endif
+
+
 #if (HAS_DS3231 > 0)
 #include <Wire.h>                 // Arduino I2C library
 #include <RtcDS3231.h>            // in .pio/libdeps
@@ -309,11 +314,11 @@ void Show(void) {
   display.clearDisplay();
   display.setTextSize(2);
   display.setTextColor(SH110X_WHITE);
-  display.setCursor(35+jitter[xjit], 5+jitter[yjit]);
+  display.setCursor(26+jitter[xjit], 10+jitter[yjit]);
   display.print(timeBuffer);
   xjit = xjit % 3;
   yjit = yjit % 3;
-  display.setCursor(8+jitter[xjit], 32+jitter[yjit]);
+  display.setCursor(20+jitter[xjit], 40+jitter[yjit]);
   display.print(dateBuffer);
   display.display();
 }
@@ -361,8 +366,8 @@ void setup() {
   display.display();
   display.setRotation(1);
   DBG("OLED begun");
-  strlcpy(timeBuffer, "--:--", sizeof(timeBuffer));
-  strlcpy(dateBuffer, "----.--.--.", sizeof(dateBuffer));
+  strlcpy(timeBuffer, "--:----", sizeof(timeBuffer));
+  strlcpy(dateBuffer, "--/--/--", sizeof(dateBuffer));
   Show();
   #endif
 
@@ -455,9 +460,10 @@ void loop(void) {
     display.display();
     #endif
   }
+  
+  const char* synchedTimeFormat = "%I:%M%p";
+  const char* notSynchedTimeFormat = "~%I:%M%p~";  // tildes to show time is "approximate"
 
-  const char* synchedTimeFormat = "%H:%M";
-  const char* notSynchedTimeFormat = "~%H:%M~";  // tildes to show time is "approximate"
 
   // Update clock on OLED at the 0 second mark, allowing for a few seconds window
   // in case the system is busy for a full second at the start of the "new" minute
@@ -471,7 +477,7 @@ void loop(void) {
     strftime(timeBuffer, sizeof(timeBuffer), ((timesynched)  && (millis() - lastRtcCorrection <= 2*GPS_POLL_TIME))
       ? synchedTimeFormat       
       : notSynchedTimeFormat, &timeinfo);
-    strftime(dateBuffer, sizeof(dateBuffer), "%F", &timeinfo);
+    strftime(dateBuffer, sizeof(dateBuffer), "%D", &timeinfo);
     DBGF("Local time: %s %s (utc %u)\n", dateBuffer, timeBuffer, lastUTCTime);
     #if (HAS_OLED > 0)
     Show();

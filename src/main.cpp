@@ -19,13 +19,93 @@ on the SeeedStudio XIAO ESP32C3 or XIAO ESP32S3
 #include "ntp_server.h"           // in lib/
 #include "secrets.h"              // use secrets.h.template to create this file
 #include "TinyGPSPlus.h"          // loaded with platformio directive
+#include "netaddr.h"              // in src/
+
 
 #define SERIAL_BAUD 115200
 
-#if (TWENTY_FOUR > 0)
-int twenty_four = 1
-#endif
+#if (USE_WIFI > 0)
+#include <WiFi.h>
+#include "secrets.h"              // use secrets.h.template to create this file in src/
+#else
+#include <ESP32-ENC28J60.h>       // hardware driver for Ethernet module in .pio/libdeps/
 
+#define SPI_HOST       1
+#define SPI_CLOCK_MHZ  8
+
+// ESP32 IO PINS          // MNI ECN28J60 PINS
+#define INT_GPIO       4  // NT
+#define MISO_GPIO     12  // SO
+#define MOSI_GPIO     13  // SI
+#define SCLK_GPIO     14  // SCK
+#define CS_GPIO       15  // CS
+
+/*****************************/
+/* * * ENC28J60 Ethernet * * */
+/*****************************/
+
+static bool eth_connected = false;
+
+void EthEvent(WiFiEvent_t event) {
+  String msg;
+  switch (event) {
+    case ARDUINO_EVENT_ETH_START:
+      DBG("ETH Started");
+      //set eth hostname here
+      ETH.setHostname("GNATS_II");
+      break;
+    case ARDUINO_EVENT_ETH_CONNECTED:
+      DBG("ETH Connected");
+      break;
+    case ARDUINO_EVENT_ETH_GOT_IP:
+      msg = "ETH MAC: ";
+      msg += ETH.macAddress();
+      msg += ", IPv4: ";
+      msg += ETH.localIP().toString();
+      if (ETH.fullDuplex()) {
+        msg += ", FULL_DUPLEX";
+      }
+      msg += ", ";
+      msg += ETH.linkSpeed();
+      msg += "Mbps";
+      DBG(msg.c_str());
+      eth_connected = true;
+      break;
+    case ARDUINO_EVENT_ETH_DISCONNECTED:
+      DBG("ETH Disconnected");
+      eth_connected = false;
+      break;
+    case ARDUINO_EVENT_ETH_STOP:
+      DBG("ETH Stopped");
+      eth_connected = false;
+      break;
+    default:
+      break;
+  }
+}
+
+void EthSetup(void) {
+  IPAddress staip, gateway, mask;
+  staip.fromString(LAN_STAIP);
+  gateway.fromString(LAN_GATEWAY);
+  mask.fromString(LAN_MASK);
+
+  WiFi.onEvent(EthEvent);
+  ETH.begin( MISO_GPIO, MOSI_GPIO, SCLK_GPIO, CS_GPIO, INT_GPIO, SPI_CLOCK_MHZ, SPI_HOST );
+  ETH.config(staip, gateway, mask);
+  while( !eth_connected) {
+    DBG("Connecting to network...");
+    delay(1000);
+  }
+  String gw("Connected as : ");
+  gw += ETH.localIP().toString();
+  DBG(gw.c_str());
+  gw = "Gateway: ";
+  gw += ETH.gatewayIP().toString();
+  DBG(gw.c_str());
+}
+
+#endif // USE_WIFI <= 0
 
 #if (HAS_DS3231 > 0)
 #include <Wire.h>                 // Arduino I2C library
@@ -372,9 +452,12 @@ void setup() {
   #endif
 
   IPAddress staip, gateway, mask;
-  staip.fromString(WIFI_STAIP);
-  gateway.fromString(WIFI_GATEWAY);
-  mask.fromString(WIFI_MASK);
+  staip.fromString(LAN_STAIP);
+  gateway.fromString(LAN_GATEWAY);
+  mask.fromString(LAN_MASK);
+
+  // connect to local network
+  #if (USE_WIFI > 0)
   DBGF("Connecting to %s\n", WIFI_SSID);
   DBGF("  static IP: %s\n", staip.toString().c_str());
   DBGF("  gateway:   %s\n", gateway.toString().c_str());
@@ -385,6 +468,10 @@ void setup() {
       delay(50);
   }
   DBGF("Connected to %s\n", WiFi.SSID().c_str());
+  #else
+  EthSetup();
+  #endif
+  
   delay(100);
   DBGF("Starting NTP server at %s:%d\n", WiFi.localIP().toString().c_str(), 123);
   NTPServer.begin(123); // 123 is the default port

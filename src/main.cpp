@@ -115,6 +115,8 @@ void EthSetup(void) {
 #if (HAS_OLED > 0)
 #include <Adafruit_GFX.h>
 #include <Adafruit_SH110X.h>
+#include <Fonts/FreeSans9pt7b.h>
+#include <Fonts/FreeSans12pt7b.h>
 #endif
 
 #if (SHOW_NMEA>0) && (!ENABLE_DGB)
@@ -385,20 +387,15 @@ char dateBuffer[12];    // date format: 2023:11:31
 #define SCREEN_HEIGHT 128 // OLED display height, in pixels
 Adafruit_SH1107 display = Adafruit_SH1107(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
 
-int jitter[3] = {-1, 0, 1};
-int xjit = 0;
-int yjit = 1;
-
 
 void Show(void) {
   display.clearDisplay();
-  display.setTextSize(2);
   display.setTextColor(SH110X_WHITE);
-  display.setCursor(26+jitter[xjit], 10+jitter[yjit]);
+  display.setCursor(SCREEN_HEIGHT / 3.5, SCREEN_WIDTH / 3.5);
+  display.setFont(&FreeSans9pt7b);
   display.print(timeBuffer);
-  xjit = xjit % 3;
-  yjit = yjit % 3;
-  display.setCursor(20+jitter[xjit], 40+jitter[yjit]);
+  display.setCursor(SCREEN_HEIGHT / 4.2, SCREEN_WIDTH / 1.2);
+  display.setFont(&FreeSans12pt7b);
   display.print(dateBuffer);
   display.display();
 }

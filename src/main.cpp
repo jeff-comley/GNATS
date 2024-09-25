@@ -391,10 +391,11 @@ Adafruit_SH1107 display = Adafruit_SH1107(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
 void Show(void) {
   display.clearDisplay();
   display.setTextColor(SH110X_WHITE);
-  display.setCursor(SCREEN_HEIGHT / 3.5, SCREEN_WIDTH / 2.5);
+  display.drawRect(0,0,128,64,SH110X_WHITE);
+  display.setCursor(SCREEN_HEIGHT / 4.8, SCREEN_WIDTH / 2.5);
   display.setFont(&FreeSans9pt7b);
   display.print(timeBuffer);
-  display.setCursor(SCREEN_HEIGHT / 4.5, SCREEN_WIDTH / 1.2);
+  display.setCursor(SCREEN_HEIGHT / 7, SCREEN_WIDTH / 1.2);
   display.setFont(&FreeSans12pt7b);
   display.print(dateBuffer);
   display.display();
@@ -443,8 +444,8 @@ void setup() {
   display.display();
   display.setRotation(1);
   DBG("OLED begun");
-  strlcpy(timeBuffer, "--:----", sizeof(timeBuffer));
-  strlcpy(dateBuffer, "--/--/--", sizeof(dateBuffer));
+  strlcpy(timeBuffer, "NO  GPS", sizeof(timeBuffer));
+  strlcpy(dateBuffer, "  LOCK", sizeof(dateBuffer));
   Show();
   #endif
 

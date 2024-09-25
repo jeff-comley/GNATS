@@ -24,12 +24,12 @@ if [ -d "GNATS/" ]; then
   if [ $delete = 'y' ]; then
     rm -rf GNATS/
     git clone https://github.com/jeff-comley/GNATS.git
-    cd GNATS
+    cd GNATS/
   fi
 
   else
     git clone https://github.com/jeff-comley/GNATS.git
-    cd GNATS
+    cd GNATS/
 fi
 
 clear
@@ -43,7 +43,7 @@ case $netoption in
     echo "You selected Wifi"
     read -p "what is your SSID?" SSID
     read -p "what is your password?" password
-    cp "src/secrets.h.template" "src/secrets.h"
+    cp -f "src/secrets.h.template" "src/secrets.h"
     secrets="src/secrets.h"
     sed -i "s/^Rose/$SSID" "$secrets"
     sed -i "s/^12345678/$password" "$secrets"
@@ -69,7 +69,7 @@ read -p "Please enter your gateway address: " gateway
 
 ## lets do the magic!
 # need to set up the netaddr.h with static IP
-cp "src/netaddr.h.template" "src/netaddr.h"
+cp -f "src/netaddr.h.template" "src/netaddr.h"
 netaddr="src/netaddr.h"
 sed -i "s/^192.168.1.23/$ipaddress" "$netaddr"
 sed -i "s/^192.168.1.1/$gateway" "$netaddr"

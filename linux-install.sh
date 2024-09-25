@@ -1,31 +1,43 @@
 #!/bin/bash
 
 clear
-echo "Welcome to the installer, lets get started!\n"
-
+echo -e "Welcome to the installer, lets get started!\r\n"
 
 ## installing git and platformio
-echo "We need to install git, build-essentials and platformio"
-sudo apt install git build-essentials platformio
+read -p "Do we need to install git, build-essentials and platformio? (y/N/s): " option
+case $option in
+  y)
+    sudo apt install git build-essentials platformio
+    ;;
+  s)
+    ;;
+  *)
+    exit
+    ;;
+esac
 
+
+clear
+echo -e "now we need to clone the GNATS repo, lets see it if exists first"
 if [ -d "GNATS/" ]; then
   read -p "Directory exists, do you want to delete? (y/N): " delete
-  if [$delete -eq 'y']; then
+  if [ $delete = 'y' ]; then
     rm -rf GNATS/
+    git clone https://github.com/jeff-comley/GNATS.git
+    cd GNATS
   fi
+
+  else
+    git clone https://github.com/jeff-comley/GNATS.git
+    cd GNATS
 fi
 
-
-## Cloning GNATS
-git clone https://github.com/jeff-comley/GNATS.git && cd GNATS
-
-
-
+clear
 # are we using Wifi or Ethernet?
-echo "\nHow are you connecting to your network"
+echo "How are you connecting to your network"
 echo "1. Wifi"
 echo "2. Ethernet"
-read $netoption
+read netoption
 case $netoption in
   1)
     echo "You selected Wifi"

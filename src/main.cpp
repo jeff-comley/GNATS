@@ -391,10 +391,10 @@ Adafruit_SH1107 display = Adafruit_SH1107(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
 void Show(void) {
   display.clearDisplay();
   display.setTextColor(SH110X_WHITE);
-  display.setCursor(SCREEN_HEIGHT / 3.5, SCREEN_WIDTH / 3.5);
+  display.setCursor(SCREEN_HEIGHT / 3.5, SCREEN_WIDTH / 2.5);
   display.setFont(&FreeSans9pt7b);
   display.print(timeBuffer);
-  display.setCursor(SCREEN_HEIGHT / 4.2, SCREEN_WIDTH / 1.2);
+  display.setCursor(SCREEN_HEIGHT / 4.5, SCREEN_WIDTH / 1.2);
   display.setFont(&FreeSans12pt7b);
   display.print(dateBuffer);
   display.display();

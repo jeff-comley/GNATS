@@ -34,11 +34,11 @@ on the SeeedStudio XIAO ESP32C3 or XIAO ESP32S3
 #define SPI_CLOCK_MHZ  8
 
 // ESP32 IO PINS          // MNI ECN28J60 PINS
-#define INT_GPIO       4  // NT
-#define MISO_GPIO     12  // SO
-#define MOSI_GPIO     13  // SI
-#define SCLK_GPIO     14  // SCK
-#define CS_GPIO       15  // CS
+#define INT_GPIO      A1  // NT
+#define MISO_GPIO     MISO  // SO
+#define MOSI_GPIO     MOSI  // SI
+#define SCLK_GPIO     SCK  // SCK
+#define CS_GPIO      A0  // CS
 
 /*****************************/
 /* * * ENC28J60 Ethernet * * */

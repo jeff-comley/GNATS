@@ -3,3 +3,5 @@
 src/secrets.h
 .DS_Store
 src/netaddr.h
+src/netaddr.h.template
+src/secrets.h.template
